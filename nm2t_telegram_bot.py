@@ -32,7 +32,7 @@ if not BOT_TOKEN:
     sys.exit(1)
 
 # Beehiiv feed URL - configurable via environment variable
-BEEHIIV_FEED_URL = re.sub(r'\s+', '', os.getenv('BEEHIIV_FEED_URL', 'https://newsletter.nm2t.com/feed'))
+BEEHIIV_FEED_URL = re.sub(r'\s+', '', os.getenv('BEEHIIV_FEED_URL', 'https://nm2t-newsletter.beehiiv.com/archive'))
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -61,14 +61,14 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not feed.entries:
             await update.message.reply_text(
                 "No newsletter entries found. The feed may not be configured yet. "
-                "Please check back later or visit https://newsletter.nm2t.com"
+                "Please check back later or visit https://nm2t-newsletter.beehiiv.com"
             )
             return
         
         # Get the latest entry
         latest_entry = feed.entries[0]
         title = latest_entry.get('title', 'Untitled')
-        link = latest_entry.get('link', 'https://newsletter.nm2t.com')
+        link = latest_entry.get('link', 'https://nm2t-newsletter.beehiiv.com')
         summary = latest_entry.get('summary', 'No summary available')
         
         # Truncate summary to 500 chars
@@ -92,7 +92,7 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(
             f"Sorry, I encountered an error fetching the latest newsletter.\\n"
             f"Error: {str(e)[:100]}\\n\\n"
-            f"Visit https://newsletter.nm2t.com to read directly."
+            f"Visit https://nm2t-newsletter.beehiiv.com to read directly."
         )
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -102,7 +102,7 @@ async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     subscribe_text = (
         "Thanks for your interest in subscribing! 📬\\n\\n"
         "You can subscribe to the NM2T newsletter directly at:\\n"
-        "https://newsletter.nm2t.com\\n\\n"
+        "https://nm2t-newsletter.beehiiv.com\\n\\n"
         "Once subscribed, you'll receive:\\n"
         "• Latest stories and insights\\n"
         "• Weekly curated content\\n"
@@ -124,7 +124,7 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "• Industry insights\\n"
         "• Best practices\\n"
         "• Community highlights\\n\\n"
-        "Visit: https://newsletter.nm2t.com"
+        "Visit: https://nm2t-newsletter.beehiiv.com"
     )
     await update.message.reply_text(about_text)
 
