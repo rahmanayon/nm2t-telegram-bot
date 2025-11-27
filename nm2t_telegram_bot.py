@@ -6,7 +6,7 @@ NM2T Telegram Bot - Newsletter distribution bot for NM2T
 import os
 import logging
 from telegram import Update, BotCommand
-from telegram.ext import Application, CommandHandler, ContextTypes, filters
+from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
 import feedparser
 
@@ -22,8 +22,8 @@ BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 if not BOT_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN environment variable not set")
 
-# Beehiiv feed URL
-BEEHIIV_FEED_URL = "https://newsletter.nm2t.com/feed"
+# Beehiiv feed URL - configurable via environment variable
+BEEHIIV_FEED_URL = os.getenv('BEEHIIV_FEED_URL', 'https://newsletter.nm2t.com/feed')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -47,20 +47,30 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         await update.message.reply_text("Fetching latest newsletter...")
         
-        feed = feedparser.parse(BEEHIIV_FEED_URL)
+        feed = feedparser.parse(BEEHIIV_FEED_URL.strip())
         
         if not feed.entries:
-            await update.message.reply_text("No newsletter entries found.")
+            await update.message.reply_text(
+                "No newsletter entries found. The feed may not be configured yet. "
+                "Please check back later or visit https://newsletter.nm2t.com"
+            )
             return
         
         # Get the latest entry
         latest_entry = feed.entries[0]
+        title = latest_entry.get('title', 'Untitled')
+        link = latest_entry.get('link', 'https://newsletter.nm2t.com')
+        summary = latest_entry.get('summary', 'No summary available')
+        
+        # Truncate summary to 500 chars
+        if len(summary) > 500:
+            summary = summary[:500] + "..."
         
         # Format the message
         message = (
-            f"*Latest Issue: {latest_entry.title}*\n\n"
-            f"{latest_entry.get('summary', 'No summary available')[:500]}...\n\n"
-            f"[Read Full Article]({latest_entry.link})"
+            f"*Latest Issue: {title}*\n\n"
+            f"{summary}\n\n"
+            f"[Read Full Article]({link})"
         )
         
         await update.message.reply_text(
@@ -71,7 +81,9 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         logger.error(f"Error fetching latest newsletter: {e}")
         await update.message.reply_text(
-            "Sorry, I encountered an error fetching the latest newsletter. Please try again later."
+            f"Sorry, I encountered an error fetching the latest newsletter.\n"
+            f"Error: {str(e)[:100]}\n\n"
+            f"Visit https://newsletter.nm2t.com to read directly."
         )
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -96,8 +108,8 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     about_text = (
         "About NM2T Newsletter 📰\n\n"
-        "NM2T is a newsletter dedicated to providing insightful content,"
-        " industry news, and valuable resources.\n\n"
+        "NM2T is a newsletter dedicated to providing insightful content, "
+        "industry news, and valuable resources.\n\n"
         "We cover:\n"
         "• Technology trends\n"
         "• Industry insights\n"
