@@ -5,6 +5,7 @@ NM2T Telegram Bot - Newsletter distribution bot for NM2T
 import os
 import logging
 import sys
+import re
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
@@ -17,14 +18,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Get bot token from environment variable - STRIP ALL WHITESPACE
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
-if not BOT_TOKEN:
+# Get bot token from environment variable - REMOVE ALL WHITESPACE INCLUDING NEWLINES
+raw_token = os.getenv('TELEGRAM_BOT_TOKEN', '')
+if not raw_token:
     logger.error("TELEGRAM_BOT_TOKEN environment variable not set")
     sys.exit(1)
 
+# Remove ALL whitespace characters (spaces, tabs, newlines, etc.)
+BOT_TOKEN = re.sub(r'\s+', '', raw_token)
+
+if not BOT_TOKEN:
+    logger.error("TELEGRAM_BOT_TOKEN is empty after whitespace removal")
+    sys.exit(1)
+
 # Beehiiv feed URL - configurable via environment variable
-BEEHIIV_FEED_URL = os.getenv('BEEHIIV_FEED_URL', 'https://newsletter.nm2t.com/feed').strip()
+BEEHIIV_FEED_URL = re.sub(r'\s+', '', os.getenv('BEEHIIV_FEED_URL', 'https://newsletter.nm2t.com/feed'))
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -141,8 +149,8 @@ def main() -> None:
     Start the bot
     """
     try:
-        # Create the Application with explicit token stripping
-        logger.info(f"Initializing bot with token (first 20 chars): {BOT_TOKEN[:20]}...")
+        # Create the Application
+        logger.info(f"Initializing bot with token: {BOT_TOKEN[:10]}...{BOT_TOKEN[-10:]}")
         application = Application.builder().token(BOT_TOKEN).build()
         
         # Add command handlers
