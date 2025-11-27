@@ -5,7 +5,7 @@ NM2T Telegram Bot - Newsletter distribution bot for NM2T
 
 import os
 import logging
-from telegram import Update, BotCommand
+from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
 import feedparser
@@ -135,19 +135,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     await update.message.reply_text(help_text)
 
-async def set_commands(application: Application) -> None:
-    """
-    Set up bot commands visible in Telegram UI
-    """
-    commands = [
-        BotCommand("start", "Start the bot"),
-        BotCommand("latest", "Get the latest newsletter"),
-        BotCommand("subscribe", "Subscribe to updates"),
-        BotCommand("about", "About NM2T"),
-        BotCommand("help", "Show help"),
-    ]
-    await application.bot.set_my_commands(commands)
-
 def main() -> None:
     """
     Start the bot
@@ -161,9 +148,6 @@ def main() -> None:
     application.add_handler(CommandHandler("subscribe", subscribe))
     application.add_handler(CommandHandler("about", about))
     application.add_handler(CommandHandler("help", help_command))
-
-    # Post-init callback to set commands
-    application.post_init = set_commands
 
     # Run the bot
     logger.info("Starting NM2T Telegram Bot...")
